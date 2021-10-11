@@ -1,0 +1,143 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+
+# `cdsampler`: Sampling from correlated discrete variables
+
+This repository provides an extremely basic way to sample from a set of correlated discrete variables.
+
+It's provided with no guarantees of correctness, but it still might be helpful to you.
+
+The basic task is as follows:
+> Sample from a population consistent with a set of two-way contingency tables.
+
+The approach is to do the following:
+- Sample data directly from a distribution in which all covariates are independent (but which matches the marginals of the desired distribution).
+- Calculate, for a given row, a likelihood ratio where the target likelihood is a pseudo likelihood constructed from the pairwise joint distributions (see http://fisher.utstat.toronto.edu/reid/research/pseudo.pdf). In short, multiply the probability of observing each pair of covariates. Divide this by the product of univariate marginal probabilities for each covariate.
+- Perform rejection sampling, where the normalizing constant is estimated as a little larger than the largest observed likelihood ratio. I estimate this with exponential sized time gaps.
+
+# FAQ
+### Is this perfectly correct? 
+It doesn't seem to be, but it isn't too far off. Check the simulation in this README for a sense of the accuracy you should expect.
+
+### Should I use this?
+Use this if you're debugging something and you just want something that will work (i.e. "give you some discrete variables correlated in approximately the way you specify") without too much setup.
+
+Don't use this if you actually care about having your samples have any kind of accuracy guarantees.
+
+### Why does this exist?
+
+It exists because I needed to debug a problem I was seeing in a statistical method that only came out on some real data. I didn't have access to the full data (and it couldn't be made public), so debugging on simulated data was all that I could do.
+
+### Is this efficient?
+
+It's probably fine. The main reason it is as slow as it is is just because it's rejection sampling, which isn't super efficient. It will probably be most efficient when correlations are low (and therefore the product distribution does a good job of approximation making the rejection rate low). As far as rejection samplers go, I don't think this should be too bad, though (I throw in some hacky hashmaps to help).
+
+### Will this break?
+
+It's definitely possible. To keep things as copacetic, don't name your variables anything very weird (the covariate names and levels need to abide by the rules of R's variable naming because I'm using environments in lieu of real hashmaps).
+
+# Installation
+
+This project will not live on CRAN. Install from [GitHub](https://github.com/) with:
+
+```{r eval=FALSE}
+# install.packages("devtools")
+devtools::install_github("ddimmery/cdsampler")
+```
+
+# Examples
+## Starting from a set of pairwise contingency tables
+```{r}
+library(tidyr)
+library(cdsampler)
+suppressMessages(library(dplyr))
+
+set.seed(100)
+
+pr1 <- expand_grid(
+    x = letters[1:3],
+    y = letters[1:2]
+) %>% mutate(n = sample(n()), prob = n / sum(n))
+
+pr2 <- expand_grid(
+    x = letters[1:3],
+    z = letters[1:4]
+) %>% mutate(n = sample(n()), prob = n / sum(n))
+
+pr3 <- expand_grid(
+    y = letters[1:2],
+    z = letters[1:4]
+) %>% mutate(n = sample(n()), prob = n / sum(n))
+
+mm <- get_marginals_from_pairwise(pr1, pr2, pr3)
+
+sdf <- sample_correlated_discrete(1000, pr1, pr2, pr3)
+
+tab <- calculate_two_way_contingencies(sdf, x, y, z)
+
+inner_join(
+    pr1,
+    tab[[1]],
+    by = c("x", "y"),
+    suffix = c(".target", ".sampled")
+) %>% mutate(pp_diff = 100 * (prob.sampled - prob.target))
+
+inner_join(
+    pr2,
+    tab[[2]],
+    by = c("x", "z"),
+    suffix = c(".target", ".sampled")
+) %>% mutate(pp_diff = 100 * (prob.sampled - prob.target))
+
+inner_join(
+    pr3,
+    tab[[3]],
+    by = c("y", "z"),
+    suffix = c(".target", ".sampled")
+) %>% mutate(pp_diff = 100 * (prob.sampled - prob.target))
+```
+
+## Starting from some example data
+
+```{r}
+library(purrr)
+
+df <- expand_grid(
+    x = letters[1:3],
+    y = letters[1:2],
+    z = letters[1:4]
+) %>%
+mutate(wt = runif(n(), 0.05, 1)) %>%
+slice_sample(n = 1000, replace = TRUE, weight_by = wt) %>%
+select(-wt)
+
+tab_target <- calculate_two_way_contingencies(df, x, y, z)
+
+sdf <- sample_correlated_discrete(size = 1000, !!!tab_target)
+
+tab_sample <- calculate_two_way_contingencies(sdf, x, y, z)
+
+for (idx in 1:3) {
+    diff <- inner_join(
+        tab_target[[idx]],
+        tab_sample[[idx]],
+        by = names(tab_target[[idx]])[1:2],
+        suffix = c(".target", ".sampled")
+    ) %>% mutate(pp_diff = 100 * (prob.sampled - prob.target))
+
+    print(diff)
+}
+```
