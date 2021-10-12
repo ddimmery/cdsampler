@@ -162,6 +162,9 @@ inner_join(
 #> 8 b     d            5      0.139        135        0.135 -0.389
 ```
 
+Differences between target and sampled pairwise inclusion probabilities
+are all within 5pp or so.
+
 ## Starting from some example data
 
 ``` r
@@ -228,3 +231,6 @@ for (idx in 1:3) {
 #> 7 b     c          153       0.153       147        0.147  -0.600
 #> 8 b     d          121       0.121       124        0.124   0.300
 ```
+
+Differences between the target and sampled pairwise inclusion
+probabilities are all under a couple percentage points.

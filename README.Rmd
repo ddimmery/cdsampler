@@ -110,6 +110,8 @@ inner_join(
 ) %>% mutate(pp_diff = 100 * (prob.sampled - prob.target))
 ```
 
+Differences between target and sampled pairwise inclusion probabilities are all within 5pp or so.
+
 ## Starting from some example data
 
 ```{r}
@@ -141,3 +143,5 @@ for (idx in 1:3) {
     print(diff)
 }
 ```
+
+Differences between the target and sampled pairwise inclusion probabilities are all under a couple percentage points.
