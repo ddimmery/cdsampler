@@ -9,20 +9,26 @@ correlated discrete variables.
 It’s provided with no guarantees of correctness, but it still might be
 helpful to you.
 
-The basic task is as follows: &gt; Sample from a population consistent
-with a set of two-way contingency tables.
+The basic task is as follows:
 
-The approach is to do the following: - Sample data directly from a
-distribution in which all covariates are independent (but which matches
-the marginals of the desired distribution). - Calculate, for a given
-row, a likelihood ratio where the target likelihood is a pseudo
-likelihood constructed from the pairwise joint distributions (see
-<http://fisher.utstat.toronto.edu/reid/research/pseudo.pdf>). In short,
-multiply the probability of observing each pair of covariates. Divide
-this by the product of univariate marginal probabilities for each
-covariate. - Perform rejection sampling, where the normalizing constant
-is estimated as a little larger than the largest observed likelihood
-ratio. I estimate this with exponential sized time gaps.
+> Sample from a population consistent with a set of two-way contingency
+> tables.
+
+The approach is to do the following:
+
+-   Sample data directly from a distribution in which all covariates are
+    independent (but which matches the marginals of the desired
+    distribution).
+-   Calculate, for a given row, a likelihood ratio where the target
+    likelihood is a pseudo likelihood constructed from the pairwise
+    joint distributions (see
+    <http://fisher.utstat.toronto.edu/reid/research/pseudo.pdf>). In
+    short, multiply the probability of observing each pair of
+    covariates. Divide this by the product of univariate marginal
+    probabilities for each covariate.
+-   Perform rejection sampling, where the normalizing constant is
+    estimated as a little larger than the largest observed likelihood
+    ratio. I estimate this with exponential sized time gaps.
 
 # FAQ
 
