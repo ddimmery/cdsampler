@@ -20,31 +20,34 @@ The approach is to do the following:
     independent (but which matches the marginals of the desired
     distribution).
 -   Calculate, for a given row, a likelihood ratio where the target
-    likelihood is a pseudo likelihood constructed from the pairwise
-    joint distributions (see
-    <http://fisher.utstat.toronto.edu/reid/research/pseudo.pdf>). In
-    short, multiply the probability of observing each pair of
-    covariates. Divide this by the product of univariate marginal
-    probabilities for each covariate.
+    likelihood is a pseudo likelihood constructed from the marginal
+    pairwise distributions (see [Cox and
+    Reid (2004)](https://www.jstor.org/stable/20441134)). In short,
+    multiply the probability of observing each pair of covariates.
+    Divide this by the product of univariate marginal probabilities for
+    each covariate.
 -   Perform rejection sampling, where the normalizing constant is
     estimated as a little larger than the largest observed likelihood
-    ratio. I estimate this with exponential sized time gaps.
+    ratio. I only do this estimation with a frequency scaling with the
+    log of samples.
 
 # FAQ
 
 ### Is this perfectly correct?
 
-It doesn’t seem to be, but it isn’t too far off. Check the simulation in
-this README for a sense of the accuracy you should expect.
+It doesn’t seem to be exactly right, but it isn’t too far off. Check the
+simulation in this README for a sense of the accuracy you should expect.
 
 ### Should I use this?
 
 Use this if you’re debugging something and you just want something that
-will work (i.e. “give you some discrete variables correlated in
-approximately the way you specify”) without too much setup.
+will give you some reasonable samples (i.e. “give you some discrete
+variables correlated in approximately the way you specify”) without too
+much setup.
 
-Don’t use this if you actually care about having your samples have any
-kind of accuracy guarantees.
+Don’t use this if you need to be confident that your samples obey
+exactly the specified distribution. One would need to do more validation
+for that.
 
 ### Why does this exist?
 
@@ -59,15 +62,17 @@ It’s probably fine. The main reason it is as slow as it is is just
 because it’s rejection sampling, which isn’t super efficient. It will
 probably be most efficient when correlations are low (and therefore the
 product distribution does a good job of approximation making the
-rejection rate low). As far as rejection samplers go, I don’t think this
-should be too bad, though (I throw in some hacky hashmaps to help).
+rejection rate low). As far as rejection samplers in pure R go, I don’t
+think this should be too bad, though.
 
 ### Will this break?
 
-It’s definitely possible. To keep things as copacetic, don’t name your
-variables anything very weird (the covariate names and levels need to
-abide by the rules of R’s variable naming because I’m using environments
-in lieu of real hashmaps).
+I’m sure you can find a way. To keep things as copacetic, don’t name
+your variables anything very weird. The covariate names and levels need
+to abide by the rules of R’s variable naming because I’m using
+environments in lieu of real hashmaps.
+
+The error messages might not be super-informative. Sorry.
 
 # Installation
 
