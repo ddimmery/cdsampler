@@ -49,6 +49,19 @@ Don’t use this if you need to be confident that your samples obey
 exactly the specified distribution. One would need to do more validation
 for that.
 
+### Why might this be wrong?
+
+I think it might be possible to specify a distribution in terms of
+pairwise probabilities that isn’t actually possible as a valid joint
+distribution. In the examples below, you can see that errors are a bit
+larger when I just choose some random pairwise correlations and sample
+relative to when I construct a full joint distribution and sample
+according to observed pairwise probabilities. In the latter case, of
+course, it is definitely a feasible joint distribution.
+
+I haven’t done enough of a simulation study to say whether this is
+actually right, though.
+
 ### Why does this exist?
 
 It exists because I needed to debug a problem I was seeing in a
@@ -68,9 +81,9 @@ think this should be too bad, though.
 ### Will this break?
 
 I’m sure you can find a way. To keep things as copacetic, don’t name
-your variables anything very weird. The covariate names and levels need
-to abide by the rules of R’s variable naming because I’m using
-environments in lieu of real hashmaps.
+your variables anything weird. The covariate names and levels need to
+abide by the rules of R’s variable naming because I’m using environments
+in lieu of real hashmaps internally.
 
 The error messages might not be super-informative. Sorry.
 
